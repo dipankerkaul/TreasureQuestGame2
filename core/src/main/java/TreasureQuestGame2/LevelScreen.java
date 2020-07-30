@@ -214,6 +214,35 @@ public class LevelScreen extends BaseScreen
             gameOver = true;
         }
 
+        for (BaseActor arrow : BaseActor.getList(mainStage, Arrow.class))
+        {
+            for (BaseActor flyer : BaseActor.getList(mainStage, Flyer.class))
+            {
+                if (arrow.overlaps(flyer))
+                {
+                    flyer.remove();
+                    arrow.remove();
+                    Coin coin = new Coin(0,0, mainStage);
+                    coin.centerAtActor(flyer);
+                    Smoke smoke = new Smoke(0,0, mainStage);
+                    smoke.centerAtActor(flyer);
+                }
+            }
+
+            for (BaseActor solid : BaseActor.getList(mainStage, Solid.class))
+            {
+                if (arrow.overlaps(solid))
+                {
+                    arrow.preventOverlap(solid);
+                    arrow.setSpeed(0);
+                    arrow.addAction( Actions.fadeOut(0.5f) );
+                    arrow.addAction( Actions.after( Actions.removeActor() ) );
+                }
+            }
+        }
+
+
+
 
 
     }
@@ -260,6 +289,25 @@ public class LevelScreen extends BaseScreen
         return false;
         if (keycode == Keys.S)
             swingSword();
+
+        if (keycode == Keys.A)
+            shootArrow();
+
         return false;
+
+
     }
+
+    public void shootArrow()
+    {
+        if ( arrows <= 0 )
+            return;
+        arrows--;
+        Arrow arrow = new Arrow(0,0, mainStage);
+        arrow.centerAtActor(hero);
+        arrow.setRotation( hero.getFacingAngle() );
+        arrow.setMotionAngle( hero.getFacingAngle() );
+    }
+
+
 }
