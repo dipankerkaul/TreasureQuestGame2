@@ -30,6 +30,8 @@ public class LevelScreen extends BaseScreen
             new Solid( (float)props.get("x"), (float)props.get("y"),
                     (float)props.get("width"), (float)props.get("height"),
                     mainStage );
+
+
         }
 
         MapObject startPoint = tma.getRectangleList("start").get(0);
@@ -118,6 +120,14 @@ public class LevelScreen extends BaseScreen
             treasure.remove();
             gameOver = true;
         }
+
+        for (MapObject obj : tma.getTileList("Flyer") )
+        {
+            MapProperties props = obj.getProperties();
+            new Flyer( (float)props.get("x"), (float)props.get("y"), mainStage );
+        }
+
+
         
     }
 
@@ -192,6 +202,20 @@ public class LevelScreen extends BaseScreen
             messageLabel.setVisible(true);
             hero.remove();
             gameOver = true;
+        }
+
+        for (BaseActor solid : BaseActor.getList(mainStage, Solid.class))
+        {
+            hero.preventOverlap(solid);
+
+            for (BaseActor flyer : BaseActor.getList(mainStage, Flyer.class))
+            {
+                if (flyer.overlaps(solid))
+                {
+                    flyer.preventOverlap(solid);
+                    flyer.setMotionAngle( flyer.getMotionAngle() + 180 );
+                }
+            }
         }
     }
 
