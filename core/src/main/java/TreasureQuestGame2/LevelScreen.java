@@ -102,24 +102,6 @@ public class LevelScreen extends BaseScreen
         treasure = new Treasure( (float)treasureProps.get("x"), (float)treasureProps.get("y"),
                 mainStage );
 
-    for ( BaseActor coin : BaseActor.getList(mainStage, Coin.class) )
-    {
-        if ( hero.overlaps(coin) )
-        {
-            coin.remove();
-            coins++;
-        }
-    }
-        if ( hero.overlaps(treasure) )
-        {
-            messageLabel.setText("You win!");
-            messageLabel.setColor(Color.LIME);
-            messageLabel.setFontScale(2);
-            messageLabel.setVisible(true);
-
-            treasure.remove();
-            gameOver = true;
-        }
 
         for (MapObject obj : tma.getTileList("Flyer") )
         {
@@ -161,6 +143,79 @@ public class LevelScreen extends BaseScreen
         coinLabel.setText(" x " + coins);
         arrowLabel.setText(" x " + arrows);
 
+        for (BaseActor solid : BaseActor.getList(mainStage, Solid.class))
+        {
+            hero.preventOverlap(solid);
+
+            for (BaseActor flyer : BaseActor.getList(mainStage, Flyer.class))
+            {
+                if (flyer.overlaps(solid))
+                {
+                    flyer.preventOverlap(solid);
+                    flyer.setMotionAngle( flyer.getMotionAngle() + 180 );
+                }
+            }
+        }
+
+        for (BaseActor flyer : BaseActor.getList(mainStage, Flyer.class))
+        {
+            if (sword.overlaps(flyer))
+            {
+                flyer.remove();
+                Coin coin = new Coin(0,0, mainStage);
+                coin.centerAtActor(flyer);
+
+                Smoke smoke = new Smoke(0,0, mainStage);
+                smoke.centerAtActor(flyer);
+            }
+        }
+
+        for (BaseActor flyer : BaseActor.getList(mainStage, Flyer.class))
+        {
+            if ( hero.overlaps(flyer) )
+            {
+                hero.preventOverlap(flyer);
+                flyer.setMotionAngle( flyer.getMotionAngle() + 180 );
+                Vector2 heroPosition = new Vector2( hero.getX(), hero.getY() );
+                Vector2 flyerPosition = new Vector2( flyer.getX(), flyer.getY() );
+                Vector2 hitVector = heroPosition.sub( flyerPosition );
+                hero.setMotionAngle( hitVector.angle() );
+                hero.setSpeed(100);
+                health--;
+            }
+        }
+
+        if ( health <= 0 )
+        {
+            messageLabel.setText("Game over...");
+            messageLabel.setColor(Color.RED);
+            messageLabel.setFontScale(2);
+            messageLabel.setVisible(true);
+            hero.remove();
+            gameOver = true;
+        }
+
+        for ( BaseActor coin : BaseActor.getList(mainStage, Coin.class) )
+        {
+            if ( hero.overlaps(coin) )
+            {
+                coin.remove();
+                coins++;
+            }
+        }
+        if ( hero.overlaps(treasure) )
+        {
+            messageLabel.setText("You win!");
+            messageLabel.setColor(Color.LIME);
+            messageLabel.setFontScale(2);
+            messageLabel.setVisible(true);
+
+            treasure.remove();
+            gameOver = true;
+        }
+
+
+
     }
 
     public void swingSword()
@@ -194,29 +249,10 @@ public class LevelScreen extends BaseScreen
         else
             sword.toFront();
 
-        if ( health <= 0 )
-        {
-            messageLabel.setText("Game over...");
-            messageLabel.setColor(Color.RED);
-            messageLabel.setFontScale(2);
-            messageLabel.setVisible(true);
-            hero.remove();
-            gameOver = true;
-        }
 
-        for (BaseActor solid : BaseActor.getList(mainStage, Solid.class))
-        {
-            hero.preventOverlap(solid);
 
-            for (BaseActor flyer : BaseActor.getList(mainStage, Flyer.class))
-            {
-                if (flyer.overlaps(solid))
-                {
-                    flyer.preventOverlap(solid);
-                    flyer.setMotionAngle( flyer.getMotionAngle() + 180 );
-                }
-            }
-        }
+
+
     }
 
     public boolean keyDown(int keycode)
