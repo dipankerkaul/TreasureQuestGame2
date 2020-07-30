@@ -5,10 +5,23 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 
 public class LevelScreen extends BaseScreen
 {   Hero hero;
     Sword sword;
+    int health;
+    int coins;
+    int arrows;
+    boolean gameOver;
+    Label healthLabel;
+    Label coinLabel;
+    Label arrowLabel;
+    Label messageLabel;
+    DialogBox dialogBox;
+    Treasure treasure;
+
     public void initialize() 
     {   TilemapActor tma = new TilemapActor("map.tmx", mainStage);
         for (MapObject obj : tma.getRectangleList("Solid") )
@@ -35,12 +48,83 @@ public class LevelScreen extends BaseScreen
             MapProperties props = obj.getProperties();
             new Rock( (float)props.get("x"), (float)props.get("y"), mainStage );
         }
+
+        health = 3;
+        coins = 5;
+        arrows = 3;
+        gameOver = false;
+        healthLabel = new Label(" x " + health, BaseGame.labelStyle);
+        healthLabel.setColor(Color.PINK);
+        coinLabel = new Label(" x " + coins, BaseGame.labelStyle);
+        coinLabel.setColor(Color.GOLD);
+        arrowLabel = new Label(" x " + arrows, BaseGame.labelStyle);
+        arrowLabel.setColor(Color.TAN);
+        messageLabel = new Label("...", BaseGame.labelStyle);
+        messageLabel.setVisible(false);
+        dialogBox = new DialogBox(0,0, uiStage);
+        dialogBox.setBackgroundColor( Color.TAN );
+        dialogBox.setFontColor( Color.BROWN );
+        dialogBox.setDialogSize(600, 100);
+        dialogBox.setFontScale(0.80f);
+        dialogBox.alignCenter();
+        dialogBox.setVisible(false);
+
+        BaseActor healthIcon = new BaseActor(0,0,uiStage);
+        healthIcon.loadTexture("heart-icon.png");
+        BaseActor coinIcon = new BaseActor(0,0,uiStage);
+        coinIcon.loadTexture("coin-icon.png");
+        BaseActor arrowIcon = new BaseActor(0,0,uiStage);
+        arrowIcon.loadTexture("arrow-icon.png");
+
+        uiTable.pad(20);
+        uiTable.add(healthIcon);
+        uiTable.add(healthLabel);
+        uiTable.add().expandX();
+        uiTable.add(coinIcon);
+        uiTable.add(coinLabel);
+        uiTable.add().expandX();
+        uiTable.add(arrowIcon);
+        uiTable.add(arrowLabel);
+        uiTable.row();
+        uiTable.add(messageLabel).colspan(8).expandX().expandY();
+        uiTable.row();
+        uiTable.add(dialogBox).colspan(8);
+
+        for (MapObject obj : tma.getTileList("Coin") )
+        {
+            MapProperties props = obj.getProperties();
+            new Coin( (float)props.get("x"), (float)props.get("y"), mainStage );
+        }
+        MapObject treasureTile = tma.getTileList("Treasure").get(0);
+        MapProperties treasureProps = treasureTile.getProperties();
+        treasure = new Treasure( (float)treasureProps.get("x"), (float)treasureProps.get("y"),
+                mainStage );
+
+    for ( BaseActor coin : BaseActor.getList(mainStage, Coin.class) )
+    {
+        if ( hero.overlaps(coin) )
+        {
+            coin.remove();
+            coins++;
+        }
+    }
+        if ( hero.overlaps(treasure) )
+        {
+            messageLabel.setText("You win!");
+            messageLabel.setColor(Color.LIME);
+            messageLabel.setFontScale(2);
+            messageLabel.setVisible(true);
+
+            treasure.remove();
+            gameOver = true;
+        }
         
     }
 
     public void update(float dt)
     {
-
+        if ( gameOver )
+            return;
         // hero movement controls
         if (Gdx.input.isKeyPressed(Keys.LEFT))
             hero.accelerateAtAngle(180);
@@ -62,6 +146,11 @@ public class LevelScreen extends BaseScreen
                     bush.remove();
             }
         }
+
+        healthLabel.setText(" x " + health);
+        coinLabel.setText(" x " + coins);
+        arrowLabel.setText(" x " + arrows);
+
     }
 
     public void swingSword()
@@ -94,10 +183,21 @@ public class LevelScreen extends BaseScreen
             hero.toFront();
         else
             sword.toFront();
+
+        if ( health <= 0 )
+        {
+            messageLabel.setText("Game over...");
+            messageLabel.setColor(Color.RED);
+            messageLabel.setFontScale(2);
+            messageLabel.setVisible(true);
+            hero.remove();
+            gameOver = true;
+        }
     }
 
     public boolean keyDown(int keycode)
-    {
+    {   if ( gameOver )
+        return false;
         if (keycode == Keys.S)
             swingSword();
         return false;
