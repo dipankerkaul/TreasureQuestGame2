@@ -526,7 +526,7 @@ public class BaseActor extends Group
 
     /**
      *  Set world dimensions for use by methods boundToWorld() and scrollTo().
-     *  @param BaseActor whose size determines the world bounds (typically a background image)
+
      */
     public static void setWorldBounds(BaseActor ba)
     {
@@ -589,13 +589,13 @@ public class BaseActor extends Group
      *  @param className name of a class that extends the BaseActor class
      *  @return list of instances of the object in stage which extend with the given class name 
      */
-    public static ArrayList<BaseActor> getList(Stage stage, String className)
+    public static ArrayList<BaseActor> getList(Stage stage, Class<?> className)
     {
         ArrayList<BaseActor> list = new ArrayList<BaseActor>();
 
         Class theClass = null;
         try
-        {  theClass = Class.forName(className);  }
+        {  theClass = className;  }
         catch (Exception error)
         {  error.printStackTrace();  }
 
@@ -613,7 +613,7 @@ public class BaseActor extends Group
      *  @param className name of a class that extends the BaseActor class
      *  @return number of instances of the class
      */
-    public static int count(Stage stage, String className)
+    public static int count(Stage stage, Class<?> className)
     {
         return getList(stage, className).size();
     }
